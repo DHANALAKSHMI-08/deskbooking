@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book a Seat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+ 
+        .container {
+            display: flex;
+            width: 100%;
+        }
+ 
+        .sidebar {
+            background-color: #2c3e50;
+            color: white;
+            width: 200px;
+            padding: 20px;
+        }
+ 
+        .sidebar nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+ 
+        .sidebar nav ul li {
+            margin-bottom: 10px;
+        }
+ 
+        .sidebar nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+ 
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+ 
+        .form-group {
+            margin-bottom: 20px;
+        }
+ 
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+ 
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+ 
+        #calendar-container {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+ 
+        .calendar-week {
+            display: flex;
+            justify-content: space-between;
+        }
+ 
+        .calendar-day {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+ 
+        .calendar-day input[type="checkbox"] {
+            margin-right: 10px; /* Add spacing between checkbox and label */
+        }
+ 
+        #summary {
+            margin-top: 20px;
+        }
+ 
+        #selected-dates {
+            list-style-type: none;
+            padding: 0;
+        }
+ 
+        .hidden {
+            display: none;
+        }
+        
+        
+         #seating-iframe {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const monthSelect = document.getElementById('month');
+            const bookingTypeSelect = document.getElementById('booking-type');
+            const reasonSelect = document.getElementById('reason');
+            const calendarContainer = document.getElementById('calendar-container');
+            const summaryList = document.getElementById('selected-dates');
+            const showSeatsButton = document.getElementById('show-seats');
+ 
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            
+            
+ 
+         
+ 
+            // Populate month dropdown with only the next month
+            populateMonthDropdown();
+ 
+            monthSelect.addEventListener('change', updateCalendar);
+            bookingTypeSelect.addEventListener('change', () => {
+                toggleReasonField();
+                updateCalendar();
+            });
+ 
+            showSeatsButton.addEventListener('click', handleShowSeats);
+ 
+            function populateMonthDropdown() {
+                const nextMonth = (currentMonth + 1) % 12;
+                const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+ 
+                const option = document.createElement('option');
+                option.value = `${nextYear}-${nextMonth + 1}`;
+                option.textContent = new Date(nextYear, nextMonth, 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+                monthSelect.appendChild(option);
+            }
+ 
+            function toggleReasonField() {
+                const bookingType = bookingTypeSelect.value;
+                if (bookingType === 'Irregular') {
+                    reasonSelect.classList.remove('hidden');
+                } else {
+                    reasonSelect.classList.add('hidden');
+                }
+            }
+ 
+            function updateCalendar() {
+                const selectedValue = monthSelect.value;
+ 
+                if (!selectedValue) {
+                    calendarContainer.innerHTML = "<p>Please select a month and booking type to view available dates.</p>";
+                    return;
+                }
+ 
+                const [year, month] = selectedValue.split('-').map(Number);
+                const weeks = getWeeksForMonth(year, month);
+                calendarContainer.innerHTML = '';
+ 
+                weeks.forEach((week, index) => {
+                    const weekDiv = document.createElement('div');
+                    weekDiv.classList.add('calendar-week');
+                    weekDiv.innerHTML = `<h3>Week ${index + 1}</h3>`;
+                    week.forEach(day => {
+                        if (day.isWeekend) return; // Skip weekends
+                        const dayDiv = document.createElement('div');
+                        dayDiv.classList.add('calendar-day');
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.value = day.date;
+                        checkbox.id = `day-${day.date}`;
+                        checkbox.addEventListener('change', toggleDateSelection);
+ 
+                        const label = document.createElement('label');
+                        label.htmlFor = `day-${day.date}`;
+                        label.innerText = day.date;
+ 
+                        dayDiv.appendChild(checkbox);
+                        dayDiv.appendChild(label);
+                        weekDiv.appendChild(dayDiv);
+                    });
+                    calendarContainer.appendChild(weekDiv);
+                });
+            }
+ 
+            function toggleDateSelection(event) {
+                const date = event.target.value;
+                if (event.target.checked) {
+                    const listItem = document.createElement('li');
+                    listItem.id = `selected-${date}`;
+                    listItem.textContent = date;
+                    summaryList.appendChild(listItem);
+                } else {
+                    const listItem = document.getElementById(`selected-${date}`);
+                    if (listItem) summaryList.removeChild(listItem);
+                }
+            }
+ 
+            function getWeeksForMonth(year, month) {
+                const daysInMonth = new Date(year, month, 0).getDate();
+                const weeks = [];
+                let week = [];
+ 
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month - 1, day);
+                    week.push({ date: `${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}-${year}`, isWeekend: date.getDay() === 0 || date.getDay() === 6 });
+                    if (week.length === 7 || day === daysInMonth) {
+                        weeks.push(week);
+                        week = [];
+                    }
+                }
+ 
+                return weeks;
+            }
+ 
+            function handleShowSeats() {
+                const location = document.getElementById('location').value;
+                if (location === '1') {
+                    window.location.href = '/seats/ckc';
+                } else if (location === '2') {
+                    window.location.href = '/seats/mepz';
+                } else {
+                    alert('Please select a valid location');
+                }
+            }
+        });
+    </script>
+</head>
+ 
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav>
+                <ul>
+                    <li><a href="#" id="home">Home</a></li>
+                    <li><a href="#" id="booking-history">Booking History</a></li>
+                    <li><a href="#" id="logout">Logout</a></li>
+                </ul>
+            </nav>
+        </aside>
+ 
+        <!-- Main Content -->
+        <main class="main-content">
+            <h1>Book Your Seat</h1>
+            <form id="booking-form">
+                <!-- Employee ID -->
+                <div class="form-group">
+                    <label for="employee-id">Employee ID:</label>
+                    <input type="number" id="employee-id" name="employee-id" minlength="7" maxlength="7" required>
+                </div>
+                
+                
+                <div class="form-group">
+                    <label for="location">Location:</label>
+                    <select id="location" name="location" required>
+                        <option value="">--Location--</option>
+                        <option value="1">CKC SEATING ARRANGEMENT</option>
+                        <option value="2">MEPZ SEATING ARRANGEMENT</option>
+                    </select>
+                </div>
+ 
+                <!-- Month Selection -->
+                <div class="form-group">
+                    <label for="month">Select Month:</label>
+                    <select id="month" name="month" required>
+                        <option value="">--Select Month--</option>
+                    </select>
+                </div>
+ 
+                <!-- Booking Type Selection -->
+                <div class="form-group">
+                    <label for="booking-type">Booking Type:</label>
+                    <select id="booking-type" name="booking-type" required>
+                        <option value="">--Select Type--</option>
+                        <option value="Regular">Regular</option>
+                        <option value="Irregular">Irregular</option>
+                    </select>
+                </div>
+ 
+                <!-- Reason for Irregular Booking -->
+                <div class="form-group hidden" id="reason">
+                    <label for="reason">Reason:</label>
+                    <select name="reason">
+                        <option value="sickleave">Sick Leave</option>
+                        <option value="earnedleave">Earned Leave</option>
+                        <option value="casualleave">Casual Leave</option>
+                    </select>
+                </div>
+ 
+                <!-- Calendar Placeholder -->
+                <div id="calendar-container">
+                    <p>Select a month and booking type to see available dates.</p>
+                </div>
+ 
+                <!-- Time Selection -->
+               <div class="form-group">
+               <label for="time-from">Time From:</label>
+               <input type="time" id="time-from" name="time-from">
+               </div>
+                
+               <div class="form-group">
+               <label for="time-to">Time To:</label>
+               <input type="time" id="time-to" name="time-to">
+                </div>
+ 
+                <!-- Summary -->
+                <div id="summary">
+                    <h2>Selected Dates</h2>
+                    <ul id="selected-dates"></ul>
+                    <button type="button" id="show-seats">Show Seats</button>
+                </div>
+ 
+                <!-- Save Button -->
+                <div class="form-group">
+                    <button type="submit" id="save-booking">Save</button>
+                </div>
+                
+               </form>  
+                
+            <!-- Iframe for seating arrangement -->
+            <iframe id="seating-iframe" src="" title="Seating Arrangement"></iframe>
+           
+        </main>
+    </div>
+</body>
+</html>
+
+

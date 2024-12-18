@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE-edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Registration</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(to right, #d3cce3, #e9e4f0); /* Soft gradient background */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: #333333;
+    }
+
+    .container {
+        width: 300px; /* Reduced width for smaller input boxes */
+        background: rgba(255, 255, 255, 0.2); /* More transparent background */
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* Softer shadow */
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px); /* For Safari */
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333333; /* Dark text color */
+    }
+
+    .input-group {
+        margin-bottom: 15px; /* Reduced margin */
+    }
+
+    .input-group input,
+    .input-group select {
+        width: calc(100% - 20px); /* Adjusted width */
+        padding: 8px; /* Reduced padding */
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        background: rgba(255, 255, 255, 0.7); /* Increased transparency */
+        color: #333333;
+        margin-bottom: 5px; /* Space for the label below the input */
+    }
+
+    .input-group label {
+        display: block;
+        color: #333333; /* Dark text color for labels */
+        margin-bottom: 5px;
+    }
+
+    .input-group input::placeholder,
+    .input-group select::placeholder {
+        color: #999999;
+    }
+
+    .btn-primary {
+        width: 100%;
+        background-color: #6a1b9a; /* Cohesive and professional color */
+        color: #ffffff;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(106, 27, 154, 0.5);
+        transition: background-color 0.3s ease-in-out;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .btn-primary:hover {
+        background-color: #4a0072; /* Slightly darker shade for hover */
+    }
+
+    .log-in {
+        text-align: center;
+        margin-top: 20px;
+        color: #333333; /* Dark grey for login link */
+    }
+
+    .log-in a {
+        color: #6a1b9a; /* Cohesive color for links */
+        text-decoration: none;
+    }
+
+    .log-in a:hover {
+        text-decoration: underline;
+    }
+</style>
+<script> 
+    function showPopup(event) { 
+        event.preventDefault(); // Prevents the default form submission
+        alert("Successfully registered");
+        document.getElementById("registrationForm").submit(); // Submits the form after showing the alert
+    }
+</script>
+</head>
+
+<body>
+    <div class="container">
+        <h2>User Registration</h2>
+        <form id="registrationForm" th:action="@{/userLogin}" th:object="${userModel}" method="post" onsubmit="showPopup(event)">
+            <div class="input-group">
+                <input type="text" th:field="*{username}" placeholder="User Name" required />
+                <label>Username</label>
+            </div>
+            <div class="input-group">
+                <input type="text" th:field="*{user_fullname}" placeholder="Full Name" required />
+                <label>Full Name</label>
+            </div>
+            <div class="input-group">
+                <input type="email" th:field="*{user_email}" placeholder="Email" required />
+                <label>Email</label>
+            </div>
+            <div class="input-group">
+                <input type="password" th:field="*{password}" placeholder="Password" required />
+                <label>Password</label>
+            </div>
+            <button type="submit" class="btn-primary">Submit</button>
+            <div class="log-in">
+                <p>Already have an account? <a target="_blank" th:href="@{/userLog}"><strong>Log In</strong></a></p>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>
